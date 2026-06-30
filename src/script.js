@@ -399,11 +399,18 @@ function renderTableau() {
         }
         colEl.classList.remove('empty');
         
+        let currentTop = 0;
         colCards.forEach((card, cardIndex) => {
             const cardEl = createCardElement(card);
-            // Stack offset spacing top positions
-            cardEl.style.top = `${cardIndex * 26}px`;
+            cardEl.style.top = `${currentTop}px`;
             colEl.appendChild(cardEl);
+            
+            // Dynamic spacing: faceup cards need more space to read suits/values, facedown need less.
+            if (card.faceUp) {
+                currentTop += 33;
+            } else {
+                currentTop += 18;
+            }
         });
     }
 }

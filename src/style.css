@@ -443,6 +443,7 @@ header {
     z-index: 1000 !important;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5) !important;
     pointer-events: none; /* Let element-under-pointer capture events */
+    transition: none !important; /* Disable transition during drag for instant responsiveness */
 }
 
 .card.drag-over {
