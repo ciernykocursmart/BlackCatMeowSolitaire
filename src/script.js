@@ -335,7 +335,7 @@ function createCardElement(card) {
     `;
     
     if (card.faceUp) {
-        setupDragEvents(cardEl);
+        initCardDragging(cardEl);
     }
     
     return cardEl;
@@ -419,97 +419,164 @@ function drawBoard() {
 
 // 7. Drag and Drop Custom Mechanics (Works seamlessly with overlapping layout)
 
-function setupDragEvents(cardEl) {
-    cardEl.setAttribute('draggable', 'true');
-    
-    cardEl.addEventListener('dragstart', (e) => {
-        e.stopPropagation();
-        
-        const cardId = cardEl.id;
-        const pileInfo = getCardPileLocation(cardId);
-        
-        if (!pileInfo) return;
-        
-        let draggedCards = [];
-        if (pileInfo.type === 'tableau') {
-            const colIdx = pileInfo.index;
-            const cardIdx = piles.tableau[colIdx].findIndex(c => c.id === cardId);
-            // Take the card and all cards stacked below it
-            draggedCards = piles.tableau[colIdx].slice(cardIdx);
-        } else if (pileInfo.type === 'waste') {
-            draggedCards = [piles.waste[piles.waste.length - 1]];
-        } else if (pileInfo.type === 'foundation') {
-            const fIdx = pileInfo.index;
-            draggedCards = [piles.foundations[fIdx][piles.foundations[fIdx].length - 1]];
-        }
-        
-        if (draggedCards.length === 0) return;
-        
-        dragData = {
-            source: pileInfo,
-            cards: draggedCards
-        };
-        
-        cardEl.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', cardId);
-        // Set drag ghost image transparent so card itself looks clean
-        const img = new Image();
-        img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-        e.dataTransfer.setDragImage(img, 0, 0);
-    });
-    
-    cardEl.addEventListener('dragend', () => {
-        cardEl.classList.remove('dragging');
-        clearDragOverStyles();
-        dragData = null;
-    });
+let isDragging = false;
+let startX = 0;
+let startY = 0;
+let draggedElements = [];
+
+function initCardDragging(cardEl) {
+    cardEl.addEventListener('mousedown', startDrag);
+    cardEl.addEventListener('touchstart', startDrag, { passive: false });
 }
 
-// Setup drop target event listeners on piles
+function startDrag(e) {
+    if (e.button !== undefined && e.button !== 0) return; // Only left mouse button
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const cardEl = e.currentTarget;
+    const cardId = cardEl.id;
+    const pileInfo = getCardPileLocation(cardId);
+    
+    if (!pileInfo) return;
+    
+    let draggedCards = [];
+    if (pileInfo.type === 'tableau') {
+        const colIdx = pileInfo.index;
+        const cardIdx = piles.tableau[colIdx].findIndex(c => c.id === cardId);
+        
+        if (!piles.tableau[colIdx][cardIdx].faceUp) return;
+        
+        draggedCards = piles.tableau[colIdx].slice(cardIdx);
+    } else if (pileInfo.type === 'waste') {
+        if (piles.waste[piles.waste.length - 1].id !== cardId) return;
+        draggedCards = [piles.waste[piles.waste.length - 1]];
+    } else if (pileInfo.type === 'foundation') {
+        const fIdx = pileInfo.index;
+        if (piles.foundations[fIdx][piles.foundations[fIdx].length - 1].id !== cardId) return;
+        draggedCards = [piles.foundations[fIdx][piles.foundations[fIdx].length - 1]];
+    }
+    
+    if (draggedCards.length === 0) return;
+    
+    e.preventDefault();
+    
+    if (!isGameActive) {
+        isGameActive = true;
+        startTimer();
+    }
+    
+    dragData = {
+        source: pileInfo,
+        cards: draggedCards
+    };
+    
+    isDragging = true;
+    startX = clientX;
+    startY = clientY;
+    
+    draggedElements = draggedCards.map(c => document.getElementById(c.id));
+    
+    draggedElements.forEach((el, index) => {
+        el.classList.add('dragging');
+        el.style.zIndex = 1000 + index;
+    });
+    
+    window.addEventListener('mousemove', dragMove);
+    window.addEventListener('touchmove', dragMove, { passive: false });
+    window.addEventListener('mouseup', dragEnd);
+    window.addEventListener('touchend', dragEnd);
+}
+
+function dragMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+    
+    draggedElements.forEach((el, index) => {
+        el.style.transform = `rotateY(180deg) translate3d(${dx}px, ${dy}px, 0) scale(1.02)`;
+    });
+    
+    clearDragOverStyles();
+    const target = findDropTarget(clientX, clientY);
+    if (target && isValidMove(dragData, target.type, target.index)) {
+        const targetEl = document.getElementById(target.type === 'tableau' ? `tableau-${target.index}` : `foundation-${target.index}`);
+        if (targetEl) {
+            targetEl.classList.add('drag-over');
+        }
+    }
+}
+
+function dragEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    window.removeEventListener('mousemove', dragMove);
+    window.removeEventListener('touchmove', dragMove);
+    window.removeEventListener('mouseup', dragEnd);
+    window.removeEventListener('touchend', dragEnd);
+    
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    
+    clearDragOverStyles();
+    
+    const target = findDropTarget(clientX, clientY);
+    let success = false;
+    
+    if (target && isValidMove(dragData, target.type, target.index)) {
+        executeMove(dragData, target.type, target.index);
+        success = true;
+    }
+    
+    if (!success) {
+        playHiss();
+        draggedElements.forEach(el => {
+            el.classList.remove('dragging');
+            el.style.transform = '';
+            el.style.zIndex = '';
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 360);
+        });
+    }
+    
+    dragData = null;
+    draggedElements = [];
+}
+
+function findDropTarget(x, y) {
+    draggedElements.forEach(el => el.style.visibility = 'hidden');
+    const elementUnder = document.elementFromPoint(x, y);
+    draggedElements.forEach(el => el.style.visibility = '');
+    
+    if (!elementUnder) return null;
+    
+    const pileEl = elementUnder.closest('.pile');
+    if (pileEl) {
+        if (pileEl.id.startsWith('tableau-')) {
+            const index = parseInt(pileEl.id.replace('tableau-', ''));
+            return { type: 'tableau', index };
+        }
+        if (pileEl.id.startsWith('foundation-')) {
+            const index = parseInt(pileEl.id.replace('foundation-', ''));
+            return { type: 'foundation', index };
+        }
+    }
+    return null;
+}
+
 function setupPileDropZones() {
-    // 1. Stock click interaction
     const stockEl = document.getElementById('stock-pile');
     stockEl.addEventListener('click', () => {
         playClick();
         handleStockClick();
     });
-    
-    // Helper to setup dragover and drop handlers
-    const setupZone = (element, targetType, targetIdx) => {
-        element.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (isValidMove(dragData, targetType, targetIdx)) {
-                element.classList.add('drag-over');
-            }
-        });
-        
-        element.addEventListener('dragleave', () => {
-            element.classList.remove('drag-over');
-        });
-        
-        element.addEventListener('drop', (e) => {
-            e.preventDefault();
-            element.classList.remove('drag-over');
-            if (isValidMove(dragData, targetType, targetIdx)) {
-                executeMove(dragData, targetType, targetIdx);
-            } else {
-                playHiss();
-                shakeDraggedCards();
-            }
-        });
-    };
-    
-    // Tableau Zones
-    for (let tIdx = 0; tIdx < 7; tIdx++) {
-        const colEl = document.getElementById(`tableau-${tIdx}`);
-        setupZone(colEl, 'tableau', tIdx);
-    }
-    
-    // Foundation Zones
-    for (let fIdx = 0; fIdx < 4; fIdx++) {
-        const fEl = document.getElementById(`foundation-${fIdx}`);
-        setupZone(fEl, 'foundation', fIdx);
-    }
 }
 
 function clearDragOverStyles() {

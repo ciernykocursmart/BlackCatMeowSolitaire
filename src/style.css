@@ -305,8 +305,8 @@ header {
     box-sizing: border-box;
 }
 
-.card:hover:not(.facedown) {
-    transform: translateY(-4px);
+.card.faceup:hover {
+    transform: rotateY(180deg) translateY(-4px);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
     z-index: 100;
 }
@@ -439,9 +439,8 @@ header {
 
 /* Dragging state classes */
 .card.dragging {
-    opacity: 0.95;
+    opacity: 0.90;
     z-index: 1000 !important;
-    transform: rotate(2deg) rotateY(180deg) scale(1.03) !important;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5) !important;
     pointer-events: none; /* Let element-under-pointer capture events */
 }
