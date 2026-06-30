@@ -500,7 +500,7 @@ function dragMove(e) {
     const dy = clientY - startY;
     
     draggedElements.forEach((el, index) => {
-        el.style.transform = `rotateY(180deg) translate3d(${dx}px, ${dy}px, 0) scale(1.02)`;
+        el.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotateY(180deg) scale(1.02)`;
     });
     
     clearDragOverStyles();
