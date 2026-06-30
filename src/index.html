@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Cat Meow Solitaire 🐾</title>
+    <!-- Google Font for playful and cozy look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1 class="bounce-title">Meow Solitaire <span class="cat-icon">🐈‍⬛</span></h1>
+            <p class="subtitle">Arrange the cards and hear the kitten meow!</p>
+        </header>
+
+        <!-- Dashboard with Stats and Controls -->
+        <section class="dashboard glass">
+            <div class="control-panel">
+                <button id="undo-btn" class="btn secondary-btn" disabled>Undo ↩️</button>
+                <button id="restart-btn" class="btn primary-btn">New Game 🔄</button>
+                <button id="sound-btn" class="btn icon-btn" title="Mute/Unmute Sound">
+                    <span class="btn-icon">🔊</span>
+                </button>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <span class="stat-label">Score</span>
+                    <span id="score-val" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Moves</span>
+                    <span id="moves-val" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Time</span>
+                    <span id="timer-val" class="stat-value">00:00</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Solitaire Board -->
+        <main class="game-board-container">
+            <!-- Top Piles Row -->
+            <div class="top-row">
+                <div class="deck-piles">
+                    <div id="stock-pile" class="pile stock-pile empty" title="Draw card">
+                        <!-- Facedown deck wrapper will be injected here -->
+                    </div>
+                    <div id="waste-pile" class="pile waste-pile empty">
+                        <!-- Top waste card will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="foundation-piles">
+                    <div id="foundation-0" class="pile foundation-pile empty" data-suit="H" data-index="0">
+                        <span class="suit-placeholder">♥</span>
+                    </div>
+                    <div id="foundation-1" class="pile foundation-pile empty" data-suit="D" data-index="1">
+                        <span class="suit-placeholder">♦</span>
+                    </div>
+                    <div id="foundation-2" class="pile foundation-pile empty" data-suit="C" data-index="2">
+                        <span class="suit-placeholder">♣</span>
+                    </div>
+                    <div id="foundation-3" class="pile foundation-pile empty" data-suit="S" data-index="3">
+                        <span class="suit-placeholder">♠</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Tableau Row -->
+            <div id="tableau-columns" class="tableau-columns">
+                <div id="tableau-0" class="pile tableau-column empty" data-index="0"></div>
+                <div id="tableau-1" class="pile tableau-column empty" data-index="1"></div>
+                <div id="tableau-2" class="pile tableau-column empty" data-index="2"></div>
+                <div id="tableau-3" class="pile tableau-column empty" data-index="3"></div>
+                <div id="tableau-4" class="pile tableau-column empty" data-index="4"></div>
+                <div id="tableau-5" class="pile tableau-column empty" data-index="5"></div>
+                <div id="tableau-6" class="pile tableau-column empty" data-index="6"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Made with 💜 for cat lovers by Kocur</p>
+        </footer>
+    </div>
+
+    <!-- Win celebration overlay -->
+    <div id="win-modal" class="modal-overlay hidden">
+        <div class="modal-content glass pop-in">
+            <div class="modal-emoji">🎉🐈‍⬛🎉</div>
+            <h2>Purr-fect Victory!</h2>
+            <p>You solved the Solitaire and made the kitten extremely happy!</p>
+            
+            <div class="modal-stats">
+                <div class="modal-stat-item">
+                    <span class="modal-stat-label">Final Score</span>
+                    <span id="modal-score" class="modal-stat-val">0</span>
+                </div>
+                <div class="modal-stat-item">
+                    <span class="modal-stat-label">Total Time</span>
+                    <span id="modal-time" class="modal-stat-val">00:00</span>
+                </div>
+                <div class="modal-stat-item">
+                    <span class="modal-stat-label">Total Moves</span>
+                    <span id="modal-moves" class="modal-stat-val">0</span>
+                </div>
+            </div>
+
+            <button id="modal-play-again" class="btn primary-btn large-btn">Play Again 🐾</button>
+        </div>
+    </div>
+
+    <!-- Canvas for Confetti Effects -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>
