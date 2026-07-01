@@ -1,7 +1,7 @@
 {
   "name": "black-cat-meow-solitaire",
   "version": "1.0.0",
-  "description": "Black Cat Meow Solitaire - Cozy Card Game",
+  "description": "Black Cat Meow Solitaire Game - Cozy Card Game",
   "author": "Kocur",
   "main": "src/main.js",
   "scripts": {
@@ -9,8 +9,8 @@
     "build": "electron-builder"
   },
   "build": {
-    "appId": "59513Lukes.BlackCatMeowSolitaire",
-    "productName": "Black Cat Meow Solitaire",
+    "appId": "59513Lukes.BlackCatMeowSolitaireGame",
+    "productName": "Black Cat Meow Solitaire Game",
     "win": {
       "target": [
         "appx"
@@ -19,8 +19,8 @@
     "appx": {
       "publisher": "CN=5B8EDAC0-7E93-4119-961E-9118180BF0FD",
       "publisherDisplayName": "Kocur",
-      "identityName": "59513Lukes.BlackCatMeowSolitaire",
-      "applicationId": "MeowSolitaire"
+      "identityName": "59513Lukes.BlackCatMeowSolitaireGame",
+      "applicationId": "MeowSolitaireGame"
     },
     "directories": {
       "output": "dist"
